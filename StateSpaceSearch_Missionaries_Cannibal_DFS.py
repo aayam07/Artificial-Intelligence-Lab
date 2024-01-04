@@ -1,4 +1,4 @@
-# Implemented using Breadth First Search (BFS) by Aayam Adhikari
+# Implemented using Depth First Search (DFS) by Aayam Adhikari
 
 from time import time
 from queue import Queue
@@ -7,9 +7,9 @@ import numpy as np
 
 
 # GLOBAL CONSTANTS
-BG_COLOR = "#c5e0bd"
+BG_COLOR = "#fa8072"
 GRAPH_TYPE = "digraph"
-FIGURE_LABEL = "Fig: Missionaries and Cannibal State Space Search Tree Solution"
+FIGURE_LABEL = "Fig: Missionaries and Cannibal State Space Search Tree DFS Solution"
 
 class Node:
     goal_state = [0, 0, 0]
@@ -67,7 +67,7 @@ class Node:
         
 
         if self.state[2] == 0:
-            op = 1  # Add (move boat from right shore to left")
+            op = 1  # Add (move boat from right shore to left)
             
 
 # Create child nodes for possible actions and adds them to the children list.
@@ -107,28 +107,25 @@ def draw_legend(graph):
         fillcolor="white",
     )
 
-# Implements the BFS algorithm to explore the state space tree.
-def bfs(initial_state):
-    # Initialize a graph object for visualization.
+# DFS function
+def dfs(initial_state):
     graph = pydot.Dot(
         graph_type=GRAPH_TYPE, bgcolor=BG_COLOR, label=FIGURE_LABEL
     )
     start_node = Node(initial_state, None, None, 0)
 
-    # return the solution immediately if the start node satisfies the goal test
     if start_node.goal_test():
         return start_node.find_solution()
 
-    q = Queue()  # empty queue
-    q.put(start_node)
+    stack = [start_node]
     explored = []
     killed = []
+
     print("The starting node is \ndepth=%d" % start_node.depth)
     print(str(start_node.state))
 
-    # While the queue is not empty, explore nodes.
-    while not q.empty():
-        node = q.get()
+    while stack:
+        node = stack.pop()
         print(
             "\nThe node selected to expand is\ndepth="
             + str(node.depth)
@@ -137,8 +134,6 @@ def bfs(initial_state):
             + "\n"
         )
 
-        # Add nodes to the graph, add edges, and assign colors based on node characteristics.
-        
         explored.append(node.state)
         graph.add_node(node.graph_node)
         if node.parent:
@@ -148,8 +143,6 @@ def bfs(initial_state):
             graph.add_edge(
                 pydot.Edge(node.parent.graph_node, node.graph_node, label=str(diff))
             )
-
-        # Generate child nodes, check if they are valid, and add them to the queue.
 
         children = node.generate_child()
         if not node.is_killed():
@@ -161,7 +154,6 @@ def bfs(initial_state):
                     if child.goal_test():
                         print("which is the goal state\n")
 
-                        # Add nodes to the graph, add edges, and assign colors based on node characteristics.
                         graph.add_node(child.graph_node)
                         diff = np.subtract(node.parent.state, node.state)
                         if node.parent.state[2] == 0:
@@ -174,7 +166,6 @@ def bfs(initial_state):
                             )
                         )
 
-                        # colour all leaves Salmon (which is killed basically)
                         leafs = {n.get_name(): True for n in graph.get_nodes()}
 
                         for e in graph.get_edge_list():
@@ -186,31 +177,28 @@ def bfs(initial_state):
                                 and str(leaf) != '"[0, 0, 0]"'
                             ):
                                 node = pydot.Node(
-                                    leaf, style="filled", fillcolor="#fa8072"
+                                    leaf, style="filled", fillcolor="#c5e0bd" 
                                 )
                                 graph.add_node(node)
 
                         draw_legend(graph)
-                        graph.write_png("StateSpaceSearchTree_Missionaries_Cannibal.png")
+                        graph.write_png("StateSpaceSearchTree_Missionaries_Cannibal_DFS.png")
 
                         return child.find_solution()
 
                     if child.is_valid():
-                        q.put(child)
+                        stack.append(child)
                     explored.append(child.state)
                 else:
                     print("This node is killed")
                     killed.append('"' + str(node.state) + '"')
 
-# Entry point for the program
-
 if __name__ == "__main__":
-    initial_state = [3, 3, 1]  # initial state of the game with 3 missionaries and 3 cannibals
+    initial_state = [3, 3, 1]
 
     start_time = time()
-    solution = bfs(initial_state)
+    solution = dfs(initial_state)
     final_time = time() - start_time
-    # print(f"Solution is: {solution}")
+
     print(f"Number of Nodes Explored: {Node.num_of_instances}")
     print(f"Total Time taken: {final_time} seconds.")
-
